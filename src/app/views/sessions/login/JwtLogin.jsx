@@ -54,9 +54,9 @@ export default function JwtLogin() {
   return (
     <AuthLayout
       title="Welcome back"
-      subtitle="Sign in to manage projects, approvals, tasks, and your account."
+      subtitle="Sign in to manage equipment calibration plans, actual results, approvals, and records."
       image="/assets/images/icon.svg"
-      imageAlt="Project Management"
+      imageAlt="Calibration System"
       footer={
         <Paragraph color="text.secondary">
           Don&apos;t have an account?

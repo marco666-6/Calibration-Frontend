@@ -120,8 +120,9 @@ export const AuthProvider = ({ children }) => {
     dispatch({ type: "LOGIN", payload: { user } });
   };
 
-  const register = async (email, username, password, confirmPassword = password) => {
+  const register = async (employeeCode, email, username, password, confirmPassword = password) => {
     const response = await registerUser({
+      employeeCode,
       email,
       username,
       password,

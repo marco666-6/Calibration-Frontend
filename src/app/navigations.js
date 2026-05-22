@@ -1,75 +1,43 @@
 const navigations = [
   {
-    name: "Dashboard",
+    name: "Calibration",
     icon: "dashboard",
     children: [
       {
-        name: "Trends",
-        iconText: "TR",
-        path: "/dashboard/default"
+        name: "Dashboard",
+        iconText: "DB",
+        path: "/dashboard"
       },
       {
-        name: "Overview",
-        iconText: "OV",
-        path: "/dashboard/overview"
+        name: "Equipment Master",
+        iconText: "EQ",
+        path: "/equipment"
       },
       {
-        name: "Portfolio",
-        iconText: "PF",
-        path: "/dashboard/portfolio"
+        name: "Plans & Actuals",
+        iconText: "CA",
+        path: "/calibration-documents"
       },
       {
-        name: "Resources",
-        iconText: "RP",
-        path: "/dashboard/resource-planning"
+        name: "Master Data",
+        iconText: "MD",
+        path: "/master-data"
       }
     ]
   },
   {
-    name: "Project Management",
-    icon: "account_tree",
-    children: [
-      {
-        name: "All Projects",
-        iconText: "AP",
-        path: "/projects"
-      },
-      {
-        name: "My Tasks",
-        iconText: "MT",
-        path: "/my-tasks"
-      }
-    ]
-  },
-  {
-    name: "Approvals",
-    icon: "verified",
-    children: [
-      {
-        name: "Pending My Action",
-        iconText: "PA",
-        path: "/approvals/pending"
-      },
-      {
-        name: "Approval Templates",
-        iconText: "AT",
-        path: "/approvals/templates"
-      }
-    ]
-  },
-  {
-    name: "Master Management",
-    icon: "group",
+    name: "Administration",
+    icon: "manage_accounts",
     children: [
       {
         name: "User",
-        iconText: "AP",
+        iconText: "US",
         path: "/users"
       },
       {
-        name: "Category",
-        iconText: "CT",
-        path: "/master/categories"
+        name: "Notifications",
+        iconText: "NT",
+        path: "/inbox"
       }
     ]
   }

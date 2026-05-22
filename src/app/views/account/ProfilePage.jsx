@@ -147,7 +147,7 @@ export default function ProfilePage() {
                   My Profile
                 </Typography>
                 <Typography variant="body2" color="text.secondary" sx={{ mt: 0.75 }}>
-                  View and update the personal details tied to your project account.
+                  View and update the personal details tied to your calibration account.
                 </Typography>
               </Box>
 

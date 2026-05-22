@@ -37,7 +37,7 @@ export default function ForgotPassword() {
       title="Forgot your password?"
       subtitle="Enter your email address and we will start the password recovery flow."
       image="/assets/images/icon.svg"
-      imageAlt="Project Management"
+      imageAlt="Calibration System"
     >
       <Formik
         initialValues={initialValues}

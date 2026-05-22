@@ -49,7 +49,7 @@ function typeLabel(type) {
 
 function SummaryCard({ title, value, caption }) {
   return (
-    <Card variant="outlined" sx={{ borderRadius: 3, height: "100%" }}>
+    <Card variant="outlined" sx={{ borderRadius: 1, height: "100%" }}>
       <CardContent>
         <Typography variant="body2" color="text.secondary">
           {title}
@@ -66,25 +66,25 @@ function SummaryCard({ title, value, caption }) {
 }
 
 const preferenceCopy = {
-  task_assigned: {
-    title: "Assignments",
-    caption: "Alert me when I am assigned to work."
+  calibration_due: {
+    title: "Due equipment",
+    caption: "Reserved for future reminders when equipment is due."
   },
-  task_comment_added: {
-    title: "Comments",
-    caption: "Alert me when followed or owned tasks get new comments."
+  calibration_overdue: {
+    title: "Overdue equipment",
+    caption: "Reserved for future reminders when equipment becomes overdue."
   },
-  task_attachment_added: {
-    title: "Attachments",
-    caption: "Alert me when files are added to followed or owned tasks."
+  calibration_approval_pending: {
+    title: "Approval pending",
+    caption: "Reserved for future alerts when a calibration document needs approval."
   },
-  task_status_changed: {
-    title: "Status changes",
-    caption: "Alert me when tracked tasks move between statuses."
+  calibration_document_locked: {
+    title: "Document locked",
+    caption: "Reserved for future alerts when a calibration record is locked."
   },
-  task_mentioned: {
-    title: "Mentions",
-    caption: "Alert me when someone mentions my username in a comment."
+  calibration_result_ng: {
+    title: "NG result",
+    caption: "Reserved for future alerts when actual calibration records an NG result."
   }
 };
 
@@ -104,8 +104,7 @@ export default function InboxPage() {
   const markAllAsReadMutation = useMarkAllNotificationsAsRead();
   const updatePreferenceMutation = useUpdateNotificationPreference();
 
-  const paged = data ?? null;
-  const items = paged?.items ?? [];
+  const items = useMemo(() => data?.items ?? [], [data]);
 
   const stats = useMemo(() => {
     const unread = items.filter((item) => !item.isRead).length;
@@ -145,7 +144,7 @@ export default function InboxPage() {
               Inbox
             </Typography>
             <Typography variant="body2" color="text.secondary" sx={{ mt: 0.5 }}>
-              Track task activity, approvals, and assignment updates in one place.
+              Notification delivery is not enabled yet. These settings are placeholders for the later reminder flow.
             </Typography>
           </Box>
           <Button
@@ -164,7 +163,7 @@ export default function InboxPage() {
           <SummaryCard title="Read" value={stats.read} caption="Already reviewed updates" />
         </Stack>
 
-        <Paper variant="outlined" sx={{ borderRadius: 3, p: 2.5 }}>
+        <Paper variant="outlined" sx={{ borderRadius: 1, p: 2.5 }}>
           <Stack spacing={2}>
             <Stack direction="row" spacing={1.5} alignItems="center">
               <SettingsSuggestRoundedIcon color="primary" />
@@ -173,7 +172,7 @@ export default function InboxPage() {
                   Collaboration Preferences
                 </Typography>
                 <Typography variant="body2" color="text.secondary" sx={{ mt: 0.5 }}>
-                  Choose which collaboration updates should reach your inbox.
+                  Keep the future notification types configured without enabling the notification feature yet.
                 </Typography>
               </Box>
             </Stack>
@@ -246,7 +245,7 @@ export default function InboxPage() {
                   No notifications found
                 </Typography>
                 <Typography variant="body2" color="text.disabled" sx={{ mt: 0.75 }}>
-                  New approvals, assignments, comments, and attachments will appear here.
+                  No notification data is read from the backend until the feature is implemented.
                 </Typography>
               </Box>
             ) : (

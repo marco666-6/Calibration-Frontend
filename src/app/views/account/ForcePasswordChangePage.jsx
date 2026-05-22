@@ -69,7 +69,7 @@ export default function ForcePasswordChangePage() {
         </Typography>
 
         <Alert severity="info" sx={{ mt: 3 }}>
-          Signed in as <strong>{user?.username}</strong>
+          Signed in as <strong>{user?.fullName || user?.username}</strong>
         </Alert>
 
         <form onSubmit={formik.handleSubmit}>

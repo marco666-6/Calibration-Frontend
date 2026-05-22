@@ -12,6 +12,7 @@ import { Paragraph } from "app/components/Typography";
 import AuthLayout from "../components/AuthLayout";
 
 const initialValues = {
+  employeeCode: "",
   email: "",
   username: "",
   password: "",
@@ -19,9 +20,17 @@ const initialValues = {
 };
 
 const validationSchema = Yup.object({
+  employeeCode: Yup.string()
+    .matches(/^\d{1,6}$/, "Employee code must be numeric and up to 6 digits")
+    .required("Employee code is required"),
   email: Yup.string().email("Enter a valid email").required("Email is required"),
   username: Yup.string().max(100, "Username is too long").required("Username is required"),
-  password: Yup.string().min(6, "Password must be at least 6 characters").required("Password is required"),
+  password: Yup.string()
+    .min(8, "Password must be at least 8 characters")
+    .matches(/[A-Z]/, "Password must contain at least one uppercase letter")
+    .matches(/[a-z]/, "Password must contain at least one lowercase letter")
+    .matches(/[0-9]/, "Password must contain at least one digit")
+    .required("Password is required"),
   confirmPassword: Yup.string()
     .oneOf([Yup.ref("password")], "Passwords must match")
     .required("Please confirm your password")
@@ -43,13 +52,23 @@ export default function JwtRegister() {
 
     try {
       await register(
+        values.employeeCode.trim(),
         values.email.trim(),
         values.username.trim(),
         values.password,
         values.confirmPassword
       );
     } catch (error) {
-      setErrorMessage(error?.response?.data?.message || error.message || "Registration failed.");
+      const validationErrors = error?.response?.data?.errors;
+      const firstValidationMessage = validationErrors
+        ? Object.values(validationErrors).flat().filter(Boolean).join(" ")
+        : "";
+      setErrorMessage(
+        firstValidationMessage ||
+          error?.response?.data?.message ||
+          error.message ||
+          "Registration failed."
+      );
     }
   };
 
@@ -58,7 +77,7 @@ export default function JwtRegister() {
       title="Create your account"
       subtitle="Let users sign themselves up, then complete the rest of their profile after sign-in."
       image="/assets/images/icon.svg"
-      imageAlt="Project Management"
+      imageAlt="Calibration System"
       footer={
         <Paragraph color="text.secondary">
           Already have an account?
@@ -88,6 +107,19 @@ export default function JwtRegister() {
                 {errorMessage}
               </Alert>
             )}
+
+            <TextField
+              fullWidth
+              size="small"
+              name="employeeCode"
+              label="Employee Code"
+              value={values.employeeCode}
+              onChange={handleChange}
+              onBlur={handleBlur}
+              error={Boolean(touched.employeeCode && errors.employeeCode)}
+              helperText={touched.employeeCode && errors.employeeCode}
+              sx={{ mb: 2 }}
+            />
 
             <TextField
               fullWidth

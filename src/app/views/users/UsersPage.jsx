@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import {
   Alert,
   Box,
@@ -51,6 +51,7 @@ import * as Yup from "yup";
 import { useDebounce } from "use-debounce";
 import useAuth from "app/hooks/useAuth";
 import { ConfirmationDialog } from "app/components";
+import { useSetUserCalibrationRoles, useUserCalibrationRoles } from "app/hooks/useCalibration";
 import {
   useCreateUser,
   useDeleteUser,
@@ -59,8 +60,9 @@ import {
   useUsers,
   useUpdateUser
 } from "app/hooks/useUsers";
+import { CALIBRATION_ROLES } from "app/utils/constant";
 
-const ROLE_OPTIONS = ["SuperAdmin", "Admin", "Manager", "Employee"];
+const ROLE_OPTIONS = ["Admin", "User"];
 
 const getUserSchema = (isEdit) =>
   Yup.object({
@@ -139,7 +141,7 @@ function UserFormDialog({ open, onClose, userId }) {
       username: user?.username ?? "",
       email: user?.email ?? "",
       password: "",
-      role: user?.role ?? "GUEST",
+      role: user?.role ?? "User",
       isActive: user?.isActive ?? true,
       mustChangePassword: user?.mustChangePassword ?? false
     },
@@ -313,7 +315,7 @@ function ResetPasswordDialog({ open, onClose, user }) {
         <DialogContent>
           <Stack spacing={2} sx={{ mt: 1 }}>
             <Alert severity="info">
-              Resetting the password for <strong>{user?.username}</strong>.
+              Resetting the password for <strong>{user?.employeeName || user?.username}</strong>.
             </Alert>
             <TextField
               label="New Password"
@@ -352,6 +354,78 @@ function ResetPasswordDialog({ open, onClose, user }) {
   );
 }
 
+function CalibrationRolesCell({ userId }) {
+  const { data: roles = [], isLoading } = useUserCalibrationRoles(userId, { enabled: !!userId });
+  const activeRoles = roles.filter((role) => role.isActive).map((role) => role.calibrationRole);
+
+  if (isLoading) return <Chip label="Loading" size="small" variant="outlined" />;
+  if (activeRoles.length === 0) return <Chip label="No calibration role" size="small" variant="outlined" />;
+
+  return (
+    <Stack direction="row" spacing={0.5} flexWrap="wrap" useFlexGap>
+      {activeRoles.map((role) => (
+        <Chip key={role} label={role} size="small" color="primary" variant="outlined" />
+      ))}
+    </Stack>
+  );
+}
+
+function CalibrationRolesDialog({ open, onClose, user }) {
+  const { data: roles = [], isLoading } = useUserCalibrationRoles(user?.userId, { enabled: open && !!user?.userId });
+  const mutation = useSetUserCalibrationRoles(user?.userId);
+  const [selectedRoles, setSelectedRoles] = useState([]);
+
+  useEffect(() => {
+    if (!open) return;
+    setSelectedRoles(roles.filter((role) => role.isActive).map((role) => role.calibrationRole));
+  }, [open, roles]);
+
+  const toggleRole = (role) => {
+    setSelectedRoles((current) =>
+      current.includes(role) ? current.filter((item) => item !== role) : [...current, role]
+    );
+  };
+
+  const handleSave = async () => {
+    await mutation.mutateAsync(selectedRoles);
+    onClose();
+  };
+
+  return (
+    <Dialog open={open} onClose={mutation.isPending ? undefined : onClose} fullWidth maxWidth="sm">
+      <DialogTitle>Calibration Roles</DialogTitle>
+      <DialogContent>
+        <Stack spacing={2} sx={{ mt: 1 }}>
+          <Alert severity="info">
+            Assign workflow responsibilities for <strong>{user?.employeeName || user?.username}</strong>.
+          </Alert>
+          {isLoading ? (
+            <Skeleton variant="rounded" height={72} />
+          ) : (
+            <Stack spacing={1}>
+              {CALIBRATION_ROLES.map((role) => (
+                <FormControlLabel
+                  key={role}
+                  control={<Switch checked={selectedRoles.includes(role)} onChange={() => toggleRole(role)} />}
+                  label={role}
+                />
+              ))}
+            </Stack>
+          )}
+        </Stack>
+      </DialogContent>
+      <DialogActions>
+        <Button onClick={onClose} disabled={mutation.isPending}>
+          Cancel
+        </Button>
+        <Button onClick={handleSave} variant="contained" disabled={mutation.isPending || isLoading}>
+          Save Roles
+        </Button>
+      </DialogActions>
+    </Dialog>
+  );
+}
+
 function EmptyState({ onCreate }) {
   return (
     <Paper variant="outlined" sx={{ py: 10, borderRadius: 3, textAlign: "center" }}>
@@ -378,6 +452,7 @@ export default function UsersPage() {
   const [debouncedSearch] = useDebounce(search, 400);
   const [selectedUserId, setSelectedUserId] = useState(null);
   const [resetUser, setResetUser] = useState(null);
+  const [roleUser, setRoleUser] = useState(null);
   const [dialogMode, setDialogMode] = useState(null);
   const [deleteTarget, setDeleteTarget] = useState(null);
   const { data: usersResponse, isLoading, isError, error, isFetching } = useUsers({
@@ -386,7 +461,7 @@ export default function UsersPage() {
     ...(debouncedSearch.trim() ? { Name: debouncedSearch.trim() } : {})
   });
 
-  const canManageUsers = ["SuperAdmin", "Admin", "Manager"].includes(authUser?.role);
+  const canManageUsers = authUser?.role === "Admin";
   const pagedUsers = Array.isArray(usersResponse) ? null : usersResponse;
   // eslint-disable-next-line react-hooks/exhaustive-deps
   const users = Array.isArray(usersResponse) ? usersResponse : usersResponse?.items ?? [];
@@ -406,25 +481,31 @@ export default function UsersPage() {
     () => [
       {
         id: "user",
-        accessorFn: (row) => row.username ?? "",
-        header: "User",
+        accessorFn: (row) => row.employeeName ?? row.username ?? "",
+        header: "Technician",
         cell: ({ row }) => (
           <Stack spacing={0.35}>
             <Typography variant="body2" fontWeight={700}>
-              {row.original.username}
+              {row.original.employeeName || row.original.username}
             </Typography>
             <Typography variant="caption" color="text.secondary">
-              {row.original.email}
+              Username: {row.original.username} / {row.original.email}
             </Typography>
           </Stack>
         )
       },
       {
         accessorKey: "role",
-        header: "Role",
+        header: "System Role",
         cell: ({ getValue }) => (
           <Chip label={getValue() ?? "Unknown"} size="small" color="primary" variant="outlined" />
         )
+      },
+      {
+        id: "calibrationRoles",
+        header: "Calibration Roles",
+        enableSorting: false,
+        cell: ({ row }) => <CalibrationRolesCell userId={row.original.userId} />
       },
       {
         accessorKey: "isActive",
@@ -460,6 +541,11 @@ export default function UsersPage() {
             <Tooltip title="Reset password">
               <IconButton onClick={() => setResetUser(row.original)}>
                 <LockResetOutlinedIcon fontSize="small" />
+              </IconButton>
+            </Tooltip>
+            <Tooltip title="Calibration roles">
+              <IconButton onClick={() => setRoleUser(row.original)}>
+                <VerifiedUserOutlinedIcon fontSize="small" />
               </IconButton>
             </Tooltip>
             <Tooltip title="Delete user">
@@ -504,7 +590,7 @@ export default function UsersPage() {
   if (!canManageUsers) {
     return (
       <Box sx={{ p: 3 }}>
-        <Alert severity="warning">Only `SA` and `ADMIN` roles can access user management.</Alert>
+        <Alert severity="warning">Only Admin users can access user management.</Alert>
       </Box>
     );
   }
@@ -523,7 +609,7 @@ export default function UsersPage() {
               Users Management
             </Typography>
             <Typography variant="body2" color="text.secondary" sx={{ mt: 0.5 }}>
-              Manage application access, roles, activation status, and password resets.
+              Manage system access, calibration roles, activation status, and password resets.
             </Typography>
           </Box>
           <Button variant="contained" startIcon={<AddIcon />} onClick={handleCreate}>
@@ -692,10 +778,16 @@ export default function UsersPage() {
         user={resetUser}
       />
 
+      <CalibrationRolesDialog
+        open={!!roleUser}
+        onClose={() => setRoleUser(null)}
+        user={roleUser}
+      />
+
       <ConfirmationDialog
         open={!!deleteTarget}
         title="Delete User"
-        text={`Delete user "${deleteTarget?.username}"? This action cannot be undone.`}
+        text={`Delete user "${deleteTarget?.employeeName || deleteTarget?.username}"? This action cannot be undone.`}
         confirmText="Delete"
         confirmColor="error"
         isLoading={deleteMutation.isPending}

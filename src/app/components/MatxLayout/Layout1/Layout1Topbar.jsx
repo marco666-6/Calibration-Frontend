@@ -73,6 +73,7 @@ const Layout1Topbar = () => {
   const { settings, updateSettings } = useSettings();
   const { logout, user } = useAuth();
   const isMdScreen = useMediaQuery(theme.breakpoints.down("md"));
+  const displayName = user?.fullName || user?.username || "User";
 
   const updateSidebarMode = (sidebarSettings) => {
     updateSettings({ layout1Settings: { leftSidebar: { ...sidebarSettings } } });
@@ -108,7 +109,7 @@ const Layout1Topbar = () => {
             menuButton={
               <UserMenu>
                 <Span>
-                  Hi <strong>{user?.username}</strong>
+                  Hi <strong>{displayName}</strong>
                 </Span>
 
                 <Avatar src={user?.avatar} sx={{ cursor: "pointer" }} />
